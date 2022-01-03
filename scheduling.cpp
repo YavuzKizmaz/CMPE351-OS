@@ -1,97 +1,165 @@
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#define SIZE 5
+#define LINE_MAX 1024
 
 
-using namespace std;
-
-
-	void fcfs(struct node* header);
-	void sjfnp(struct node* header);
-	void pnp(struct node* header);
-	void sm(struct node* header);
-	void pm(struct node* header);
-	void npm(struct node* header);
-	void sr(struct node* header);
-
-void gd();
-
-	struct node {
-		int pn;
-		int bt;
-		int at;
-		int py;
-	struct node *next;
-};
-
-int is_empty_node(struct node * header);
-	struct node * sort_list(struct node * header);
-	struct node * insert_back(struct node * header, int pn, int btm, int atm, int pyn);
-	struct node * check_completion(struct node * header, int count);
-	struct node * sort_priority(struct node * header);
-	struct node * create_node(int pn, int btm, int atm, int pyn);
-	struct node * delete_front(struct node * header);
-int main()
-
-
-{
-
-struct node *header = NULL;
-
-		int pn;
-		int btm;
-		int atm;
-		int pyn;
-		ifstream fin;
-		bool loop = true;
-		
-fin.open("input.txt");
-
-
-if (fin.is_open()) {
-
-		while (fin >> pn >> btm >> atm >> pyn) {
-		
-		header = insert_back(header, pn, btm, atm, pyn);
-		
-		}
-	}
+struct linkedList {
 	
-fin.close();
-		while (loop) {
-	int option;
+    	int Name; //Name
+    	int bTime; //Brust Time
+    	int aTime; //Arrival Time
+    	int wTime; //Waiting Time
+    	int p; //Priority    	
+    	int sr; //Show Result
 		
-		cout << endl << "\t\t\tCPU SCHEDULER SIMULATOR" << endl;
-		cout << endl << "1) Scheduling Method";
-		cout << endl << "2) Preemptive Method";
-		cout << endl << "3) Non-preemptive Mode";
-		cout << endl << "4) Show Result";
-		cout << endl << "5) End Program";
-		cout << endl << "Option >";
-	cin >> option;
-
-		if (option == 1) {
-			sm(header);
-		}
-		else if (option == 2) {
-			pm(header);
-		}
-		else if (option == 3) {
-			npm(header);
-		}
-		else if (option == 4) {
-			sr(header);
-		}
-		else if (option == 5) {
-			return 0;
-		}
-		else {
-			cout << endl << "please enter from 1 - 5" << endl;
-		}
-	}
-	cin.ignore();
-	return 0;
 }
 
+linkedList;
 
+void FCFS(struct linkedList process[], FILE *fp){
+	
+    	struct linkedList *temp;
+    	temp = (struct linkedList *) malloc (SIZE*sizeof(struct linkedList));
+    	int i;
+   	 	int totalWaiting=0;
+    	double averageWaiting;
+
+    for(i=0;i<SIZE;i++)
+        temp[i]=process[i];
+
+    struct linkedList list;
+    int a,b;
+    for(a=1;a<SIZE;a++) {
+        for (b = 0; b < SIZE - a; b++) 
+		
+		{
+            if (temp[b].aTime > temp[b + 1].aTime) {
+            list = temp[b];
+            temp[b] = temp[b + 1];
+            temp[b + 1] = list;
+            
+            }
+        }
+    }
+
+    totalWaiting = temp[0].wTime = 0;
+
+    for(i = 1; i < SIZE; i++){
+        temp[i].wTime = (temp[i-1].bTime + temp[i-1].aTime + temp[i-1].wTime) - temp[i].aTime;
+        
+        totalWaiting += temp[i].wTime;
+    }
+    
+    	averageWaiting = (double)totalWaiting/SIZE;
+    		printf("Scheduling Method : First Come First Served\nProcess Waiting Times:\n");
+
+    for(i = 0; i < SIZE; i++) {
+        printf("\nP%d: %d ms\n", i+1, temp[i].wTime);
+    }
+    
+    printf("\nAverage waiting time: %f ms\n",averageWaiting);
+    
+    fprintf(fp,"Scheduling Method : First Come First Served\nProcess Waiting Times:\n");
+
+    for(i = 0; i < SIZE; i++) 
+	
+	{
+		
+        fprintf(fp,"\nP%d: %d ms", i+1, temp[i].wTime);
+    
+	}
+	
+	
+    fprintf(fp,"\nAverage waiting time: %f ms\n",averageWaiting);
+    fclose(fp);
+}
+
+void SJFS_nonpreemptive(struct linkedList process[], FILE *fp)
+
+{
+    	struct linkedList *temp, list, list2;
+   	 	temp = (struct linkedList *) malloc (SIZE*sizeof(struct linkedList));
+    	int i,a,b;
+    	int totalWaitingTime=0;
+    	double averageWaitingTime;
+
+    for(i=0;i<SIZE;i++) {
+        temp[i] = process[i];
+        
+    }
+
+    for(a=1;a<SIZE;a++) {
+        for (b = 0; b < SIZE - a; b++) 
+		
+		{
+           		if (temp[b].aTime > temp[b + 1].aTime) {
+            list2 = temp[b];
+            temp[b] = temp[b + 1];
+            temp[b + 1] = list2;
+            
+            }
+        }
+    }
+
+    for(a=2;a<SIZE;a++) {
+        for (b = 1; b < SIZE - a+1; b++) 
+		{
+            	if (temp[b].bTime > temp[b + 1].bTime) {
+            list = temp[b];
+            temp[b] = temp[b + 1];
+            temp[b + 1] = list;
+            }
+        }
+    }
+
+    totalWaitingTime = temp[0].wTime = 0;
+
+    for(i = 1; i < SIZE; i++)
+	
+	{
+        temp[i].wTime = (temp[i-1].bTime + temp[i-1].aTime + temp[i-1].wTime) - temp[i].aTime;
+        totalWaitingTime += temp[i].wTime;
+    }
+
+    averageWaitingTime = (double)totalWaitingTime/SIZE;
+
+    for(a=1;a<SIZE;a++) 
+	
+	{
+        for (b = 0; b < SIZE - a; b++) 
+		
+		{
+            	if (temp[b].Name > temp[b + 1].Name) {
+            list = temp[b];
+            temp[b] = temp[b + 1];
+            temp[b + 1] = list;
+            }
+        }
+    }
+
+    printf("Scheduling Method : Priority Scheduling (Preemptive)\nProcess Waiting Times:");
+   
+    for(i = 0; i < SIZE; i++) 
+	
+	{
+        printf("\nP%d: %d ms", i+1, temp[i].wTime);
+    }
+    
+    
+    printf("\nAverage waiting time: %f ms\n",averageWaitingTime);
+
+    fprintf(fp,"Scheduling Method : Priority Scheduling (Preemptive)\nProcess Waiting Times:");
+
+    for(i = 0; i < SIZE; i++) 
+	
+	{
+        fprintf(fp,"\nP%d: %d ms", i+1, temp[i].wTime);
+    }
+    
+    
+    fprintf(fp,"\nAverage waiting time: %f ms\n",averageWaitingTime);
+    fclose(fp);
+    
+}
