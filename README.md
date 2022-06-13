@@ -1,2 +1,2 @@
 
-CMPE351 There are  project files of the course.</b>
+ There are  project files
